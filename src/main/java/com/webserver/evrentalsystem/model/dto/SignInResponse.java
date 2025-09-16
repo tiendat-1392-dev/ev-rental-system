@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
-    private Long userId;
+public class SignInResponse {
+    private UserDto userInfo;
 }

@@ -33,14 +33,14 @@ public class JwtUtils {
 
     private String generateJwtToken(User user, long jwtExpirationMs) {
         return Jwts.builder()
-                .setSubject(user.getUserName())
-                .claim("role", user.getRole().getValue())
+                .setSubject(user.getPhone())
+                .claim(Constant.Attribute.ROLE, user.getRole().getValue())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    public String getUserNameFromJwtToken(String token) {
+    public String getUserPhoneFromJwtToken(String token) {
         return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody().getSubject();
     }
 
@@ -48,16 +48,16 @@ public class JwtUtils {
         return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody().get("role", String.class);
     }
 
-    public boolean validateJwtToken(String authToken) {
+    public boolean invalidateJwtToken(String authToken) {
         Logger.printf(authToken);
         try {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
             Logger.printf("validateJwtToken: true");
-            return true;
+            return false;
         } catch (Exception e) {
             Logger.printf("Invalid JWT signature: " + e.getMessage());
         }
-        return false;
+        return true;
     }
 
     private Key getSigningKey() {

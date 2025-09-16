@@ -1,79 +1,44 @@
 package com.webserver.evrentalsystem.entity;
 
-import com.webserver.evrentalsystem.jpaconverter.GenderJpaConverter;
-import com.webserver.evrentalsystem.jpaconverter.MembershipClassJpaConverter;
 import com.webserver.evrentalsystem.jpaconverter.RoleJpaConverter;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "userName", nullable = false, unique = true)
-    private String userName;
-
-    @Column(name = "password", nullable = false)
-    private String password;
-
-    @Column(name = "luckyWheelSpin", columnDefinition = "integer default 0")
-    private int luckyWheelSpin;
-
-    @Column(name = "userPublicName", length = 20)
-    private String userPublicName;
-
-    @Column(name = "realName", length = 20)
-    private String realName;
-
-    @Column(name = "citizenIdentityCard")
-    private String citizenIdentityCard;
-
-    @Column(name = "avatar")
-    private String avatar;
-
-    @Convert(converter = RoleJpaConverter.class)
-    @Column(name = "role", nullable = false)
-    private Role role;
-
-    @Convert(converter = MembershipClassJpaConverter.class)
-    @Column(name = "membershipClass", nullable = false)
-    private MembershipClass membershipClass;
-
-    @Column(name = "amount", nullable = false)
-    private Integer amount;
-
-    @Column(name = "dateOfBirth")
-    private Long dateOfBirth;
-
-    @Convert(converter = GenderJpaConverter.class)
-    @Column(name = "gender")
-    private Gender gender;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
     @Column(name = "email")
     private String email;
 
-    @Column(name = "phoneNumber")
-    private String phoneNumber;
+    @Column(name = "phone", nullable = false, unique = true)
+    private String phone;
 
-    @Column(name = "address")
-    private String address;
+    @Column(nullable = false)
+    private String password;
 
-    @Column(name = "createdAt")
-    private Long createdAt;
+    @Convert(converter = RoleJpaConverter.class)
+    @Column(name = "role", nullable = false)
+    private Role role; // renter, staff, admin
 
-    @Column(name = "createdBy")
-    private String createdBy;
-
-    @Column(name = "refreshToken")
+    @Column(name = "refresh_token")
     private String refreshToken;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

@@ -1,19 +1,14 @@
 package com.webserver.evrentalsystem.service.impl;
 
-import com.webserver.evrentalsystem.entity.BlockedSession;
 import com.webserver.evrentalsystem.entity.User;
-import com.webserver.evrentalsystem.exception.*;
 import com.webserver.evrentalsystem.exception.InvalidateParamsException;
-import com.webserver.evrentalsystem.exception.UserIsBlockedException;
 import com.webserver.evrentalsystem.exception.UserNotFoundException;
-import com.webserver.evrentalsystem.model.dto.SigninRequest;
-import com.webserver.evrentalsystem.model.dto.SigninResponse;
+import com.webserver.evrentalsystem.model.dto.SignInRequest;
+import com.webserver.evrentalsystem.model.dto.SignInResponse;
 import com.webserver.evrentalsystem.model.mapping.UserMapping;
-import com.webserver.evrentalsystem.repository.BlockedSessionRepository;
 import com.webserver.evrentalsystem.repository.UserRepository;
 import com.webserver.evrentalsystem.service.AuthService;
 import com.webserver.evrentalsystem.service.validation.UserValidation;
-import com.webserver.evrentalsystem.utils.CommonUtils;
 import com.webserver.evrentalsystem.utils.CookieUtils;
 import com.webserver.evrentalsystem.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,24 +36,21 @@ public class AuthServiceImpl implements AuthService {
     private UserMapping userMapping;
 
     @Autowired
-    private BlockedSessionRepository blockedSessionRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtUtils jwtUtils;
 
     @Override
-    public SigninResponse signIn(SigninRequest signinRequest, HttpServletResponse httpServletResponse) {
-        String userName = signinRequest.getUserName();
+    public SignInResponse signIn(SignInRequest signinRequest, HttpServletResponse httpServletResponse) {
+        String phone = signinRequest.getPhone();
         String password = signinRequest.getPassword();
 
-        if (userName.isEmpty() || password.isEmpty()) {
-            throw new InvalidateParamsException("Tên đăng nhập và mật khẩu không được để trống");
+        if (phone.isEmpty() || password.isEmpty()) {
+            throw new InvalidateParamsException("Số điện thoại và mật khẩu không được để trống");
         }
 
-        User user = userRepository.findByUserName(userName);
+        User user = userRepository.findByPhone(phone);
 
         if (user == null) {
             throw new UserNotFoundException("Người dùng không tồn tại");
@@ -70,12 +62,6 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidateParamsException("Mật khẩu không chính xác");
         }
 
-        // check if user is blocked
-        BlockedSession blockedSession = blockedSessionRepository.findAndCheckIfUserIsBlocked(user);
-        if (blockedSession != null) {
-            throw new UserIsBlockedException(CommonUtils.generateBlockMessage(blockedSession));
-        }
-
         String accessToken = jwtUtils.generateJwtAccessToken(user);
         String refreshToken = jwtUtils.generateJwtRefreshToken(user);
 
@@ -83,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRefreshToken(refreshToken);
         userRepository.save(user);
 
-        SigninResponse signinResponse = new SigninResponse();
+        SignInResponse signinResponse = new SignInResponse();
         signinResponse.setUserInfo(userMapping.toUserDto(user));
 
         // save access token to cookie

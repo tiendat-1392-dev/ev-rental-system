@@ -56,13 +56,6 @@ public class CustomExceptionHandler {
         return new ErrorResponse(HttpStatus.FORBIDDEN.value(), Error.PermissionDenied.getValue(), ex.getMessage());
     }
 
-    @ExceptionHandler(UserIsBlockedException.class)
-    @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-    @ResponseBody
-    public ErrorResponse handleUserIsBlockedException(UserIsBlockedException ex) {
-        return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), Error.UserIsBlocked.getValue(), ex.getMessage());
-    }
-
     @ExceptionHandler(InternalServerException.class)
     @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody

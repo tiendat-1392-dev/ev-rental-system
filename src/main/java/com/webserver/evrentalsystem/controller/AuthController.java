@@ -1,7 +1,7 @@
 package com.webserver.evrentalsystem.controller;
 
-import com.webserver.evrentalsystem.model.dto.SigninRequest;
-import com.webserver.evrentalsystem.model.dto.SigninResponse;
+import com.webserver.evrentalsystem.model.dto.SignInRequest;
+import com.webserver.evrentalsystem.model.dto.SignInResponse;
 import com.webserver.evrentalsystem.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,8 +17,8 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping(value = "/sign-in")
-    public ResponseEntity<?> signIn(@RequestBody SigninRequest signinRequest, HttpServletResponse httpServletResponse) {
-        SigninResponse signinResponse = authService.signIn(signinRequest, httpServletResponse);
+    public ResponseEntity<?> signIn(@RequestBody SignInRequest signinRequest, HttpServletResponse httpServletResponse) {
+        SignInResponse signinResponse = authService.signIn(signinRequest, httpServletResponse);
         return ResponseEntity.ok(signinResponse);
     }
 

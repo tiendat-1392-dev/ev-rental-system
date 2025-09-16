@@ -19,15 +19,4 @@ public class UserController {
         UserDto userDto = userService.getUserInfo(request);
         return ResponseEntity.ok(userDto);
     }
-
-    @GetMapping(value = "/get-topup-requests")
-    public ResponseEntity<?> getTopupRequests(HttpServletRequest request) {
-        Logger.printf("get-topup-requests");
-        return ResponseEntity.ok(userService.getTopupRequests(request));
-    }
-
-    @PostMapping(value = "/create-topup-request")
-    public void createTopupRequest(HttpServletRequest request, @RequestBody Integer amount) {
-        userService.createTopupRequest(request, amount);
-    }
 }

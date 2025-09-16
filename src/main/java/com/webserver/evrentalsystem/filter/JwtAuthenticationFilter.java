@@ -2,16 +2,16 @@ package com.webserver.evrentalsystem.filter;
 
 import com.webserver.evrentalsystem.entity.Role;
 import com.webserver.evrentalsystem.entity.User;
-import com.webserver.evrentalsystem.exception.*;
 import com.webserver.evrentalsystem.exception.Error;
 import com.webserver.evrentalsystem.exception.ErrorResponse;
-import com.webserver.evrentalsystem.repository.BlockedSessionRepository;
 import com.webserver.evrentalsystem.repository.UserRepository;
 import com.webserver.evrentalsystem.service.AuthService;
+import com.webserver.evrentalsystem.utils.Constant;
 import com.webserver.evrentalsystem.utils.CookieUtils;
 import com.webserver.evrentalsystem.utils.JwtUtils;
 import com.webserver.evrentalsystem.utils.Logger;
-import jakarta.servlet.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private UserRepository userRepository;
 
     @Autowired
-    private BlockedSessionRepository blockedSessionRepository;
-
-    @Autowired
     private AuthService authService;
 
     @Override
@@ -56,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String url = request.getRequestURI();
             Logger.printf("url: " + url);
 
-            if (accessToken == null || accessToken.isEmpty() || !jwtUtils.validateJwtToken(accessToken)) {
+            if (accessToken == null || accessToken.isEmpty() || jwtUtils.invalidateJwtToken(accessToken)) {
                 // refresh access token
                 boolean isSuccessful = refreshAccessToken(refreshToken, response);
                 Logger.printf("Refresh access token successfully: " + isSuccessful);
@@ -65,14 +62,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
 
-            String userName = jwtUtils.getUserNameFromJwtToken(accessToken);
+            String phone = jwtUtils.getUserPhoneFromJwtToken(accessToken);
             String role = jwtUtils.getRoleFromJwtToken(accessToken);
-            request.setAttribute("userName", userName);
-            request.setAttribute("role", role);
+            request.setAttribute(Constant.Attribute.PHONE, phone);
+            request.setAttribute(Constant.Attribute.ROLE, role);
 
             // check role
-            if (url.contains("/moderator/")) {
-                if (!role.equals(Role.MODERATOR.getValue()) && !role.equals(Role.ADMIN.getValue())) {
+            if (url.contains("/staff/")) {
+                if (!role.equals(Role.STAFF.getValue())) {
                     response.setStatus(HttpStatus.FORBIDDEN.value());
                     response.getWriter().write(new ErrorResponse(HttpStatus.FORBIDDEN.value(), Error.PermissionDenied.getValue(), "Bạn không có quyền thực hiện hành động này").toJson());
                     return;
@@ -83,16 +80,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     response.getWriter().write(new ErrorResponse(HttpStatus.FORBIDDEN.value(), Error.PermissionDenied.getValue(), "Bạn không có quyền thực hiện hành động này").toJson());
                     return;
                 }
-            }
-
-            // check if user is blocked
-            boolean isBlocked = blockedSessionRepository.isBlocked(userName);
-            if (isBlocked) {
-                // remove access token and refresh token
-                clearTokenCookie(response);
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.getWriter().write(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), Error.UserIsBlocked.getValue(), "Tài khoản của bạn đã bị khóa!").toJson());
-                return;
             }
 
             filterChain.doFilter(request, response);
@@ -136,7 +123,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return false;
         }
 
-        if (!jwtUtils.validateJwtToken(refreshToken)) {
+        if (jwtUtils.invalidateJwtToken(refreshToken)) {
             Logger.printf("Refresh token đã hết hạn!");
             clearTokenCookie(response);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
@@ -144,9 +131,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return false;
         }
 
-        String userName = jwtUtils.getUserNameFromJwtToken(refreshToken);
+        String phone = jwtUtils.getUserPhoneFromJwtToken(refreshToken);
 
-        User user = userRepository.findByUserName(userName);
+        User user = userRepository.findByPhone(phone);
 
         if (user == null) {
             Logger.printf("Khong tim thay user!");
