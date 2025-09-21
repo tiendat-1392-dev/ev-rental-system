@@ -1,4 +1,4 @@
-package com.webserver.evrentalsystem.model.dto;
+package com.webserver.evrentalsystem.model.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SignInResponse {
-    private UserDto userInfo;
+public class RefreshTokenRequest {
+    private String refreshToken;
 }

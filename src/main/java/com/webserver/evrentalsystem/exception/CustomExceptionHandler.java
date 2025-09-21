@@ -21,6 +21,13 @@ public class CustomExceptionHandler {
         return new ErrorResponse(HttpStatus.NOT_FOUND.value(), Error.UserNotFound.getValue(), ex.getMessage());
     }
 
+    @ExceptionHandler(DataNotFoundException.class)
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ErrorResponse handleDataNotFoundException(DataNotFoundException ex) {
+        return new ErrorResponse(HttpStatus.NOT_FOUND.value(), Error.DataNotFound.getValue(), ex.getMessage());
+    }
+
     @ExceptionHandler(InvalidateParamsException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     @ResponseBody
@@ -70,6 +77,6 @@ public class CustomExceptionHandler {
     public ErrorResponse handleException(Exception ex) {
         // save the exception to the database for further investigation
         errorSaver.saveErrorToDatabase(ex);
-        return new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), Error.InternalServer.getValue(), "Lỗi không xác định");
+        return new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), Error.InternalServer.getValue(), ex.getMessage());
     }
 }
