@@ -1,5 +1,6 @@
 package com.webserver.evrentalsystem.service.validation;
 
+import com.webserver.evrentalsystem.entity.Role;
 import com.webserver.evrentalsystem.entity.User;
 import com.webserver.evrentalsystem.exception.InvalidateParamsException;
 import com.webserver.evrentalsystem.exception.PermissionDeniedException;
@@ -50,5 +51,29 @@ public class UserValidation {
         }
 
         return user;
+    }
+
+    public User validateRenter() {
+        User user = validateUser();
+        if (user.getRole().equals(Role.RENTER)) {
+            return user;
+        }
+        throw new PermissionDeniedException("Người dùng không có quyền thực hiện hành động này");
+    }
+
+    public User validateStaff() {
+        User user = validateUser();
+        if (user.getRole().equals(Role.STAFF)) {
+            return user;
+        }
+        throw new PermissionDeniedException("Người dùng không có quyền thực hiện hành động này");
+    }
+
+    public User validateAdmin() {
+        User user = validateUser();
+        if (user.getRole().equals(Role.ADMIN)) {
+            return user;
+        }
+        throw new PermissionDeniedException("Người dùng không có quyền thực hiện hành động này");
     }
 }
