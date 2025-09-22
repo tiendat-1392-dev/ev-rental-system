@@ -21,11 +21,18 @@ public class CustomExceptionHandler {
         return new ErrorResponse(HttpStatus.NOT_FOUND.value(), Error.UserNotFound.getValue(), ex.getMessage());
     }
 
-    @ExceptionHandler(DataNotFoundException.class)
+    @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     @ResponseBody
-    public ErrorResponse handleDataNotFoundException(DataNotFoundException ex) {
-        return new ErrorResponse(HttpStatus.NOT_FOUND.value(), Error.DataNotFound.getValue(), ex.getMessage());
+    public ErrorResponse handleNotFoundException(NotFoundException ex) {
+        return new ErrorResponse(HttpStatus.NOT_FOUND.value(), Error.NotFound.getValue(), ex.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(value = HttpStatus.CONFLICT)
+    @ResponseBody
+    public ErrorResponse handleConflictException(ConflictException ex) {
+        return new ErrorResponse(HttpStatus.CONFLICT.value(), Error.Conflict.getValue(), ex.getMessage());
     }
 
     @ExceptionHandler(InvalidateParamsException.class)

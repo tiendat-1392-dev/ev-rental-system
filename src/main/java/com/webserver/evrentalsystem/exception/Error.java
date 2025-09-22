@@ -5,7 +5,8 @@ import lombok.Getter;
 @Getter
 public enum Error {
     UserNotFound("UserNotFound"),
-    DataNotFound("DataNotFound"),
+    NotFound("NotFound"),
+    Conflict("Conflict"),
     InvalidateParamsException("InvalidateParamsException"),
     UserAlreadyExists("UserAlreadyExists"),
     ExpiredAccessToken("ExpiredAccessToken"),
