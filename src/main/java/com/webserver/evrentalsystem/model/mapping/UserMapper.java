@@ -7,5 +7,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
+    @Mapping(source = "role.value", target = "role") // enum Role -> string
     UserDto toUserDto(User user);
 }

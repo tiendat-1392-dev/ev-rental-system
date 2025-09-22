@@ -1,4 +1,4 @@
-package com.webserver.evrentalsystem.model.dto.entitydto;
+package com.webserver.evrentalsystem.model.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -10,15 +10,12 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class VehicleDto {
-
-    @Schema(description = "ID xe", example = "1")
-    private Long id;
+public class CreateVehicleRequest {
 
     @Schema(description = "Biển số xe", example = "30A-12345")
     private String licensePlate;
 
-    @Schema(description = "Loại xe", example = "car")
+    @Schema(description = "Loại xe", example = "car", allowableValues = {"car", "motorbike"})
     private String type;
 
     @Schema(description = "Hãng xe", example = "Toyota")
@@ -33,12 +30,12 @@ public class VehicleDto {
     @Schema(description = "Quãng đường di chuyển trên mỗi lần sạc đầy (km)", example = "250")
     private Integer rangePerFullCharge;
 
-    @Schema(description = "Trạng thái", example = "available")
+    @Schema(description = "Trạng thái xe", example = "available", allowableValues = {"reserved", "available", "reserved", "maintenance", "rented"})
     private String status;
 
     @Schema(description = "Giá thuê mỗi giờ", example = "150000")
     private BigDecimal pricePerHour;
 
-    @Schema(description = "Trạm mà xe đang ở")
-    private StationDto station;
+    @Schema(description = "ID trạm", example = "1")
+    private Long stationId;
 }

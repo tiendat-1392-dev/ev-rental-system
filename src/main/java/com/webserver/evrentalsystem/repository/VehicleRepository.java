@@ -9,6 +9,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long>, JpaSpec
     @Query("SELECT v FROM Vehicle v WHERE v.id = :id AND v.status = 'available'")
     Vehicle findByIdAndStatusAvailable(Long id);
 
-    @Query("SELECT CASE WHEN COUNT(v) > 0 THEN true ELSE false END FROM Vehicle v WHERE v.type = :type AND v.status = 'available' AND v.station.id = :stationId")
-    boolean existsByTypeAndStatusAvailableAndStationId(String type, Long stationId);
+    @Query("SELECT CASE WHEN COUNT(v) > 0 THEN true ELSE false END FROM Vehicle v WHERE v.licensePlate = :licensePlate")
+    boolean existsByLicensePlate(String licensePlate);
 }
