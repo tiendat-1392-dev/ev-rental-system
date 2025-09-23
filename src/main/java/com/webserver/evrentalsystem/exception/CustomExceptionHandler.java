@@ -3,10 +3,15 @@ package com.webserver.evrentalsystem.exception;
 import com.webserver.evrentalsystem.exception.store.ErrorSaver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class CustomExceptionHandler {
@@ -75,6 +80,24 @@ public class CustomExceptionHandler {
     @ResponseBody
     public ErrorResponse handleInternalServerException(InternalServerException ex) {
         return new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), Error.InternalServer.getValue(), ex.getMessage());
+    }
+
+    // Catch validation errors like @NotNull, @Size, ...
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        // Extract validation error messages
+        String messages = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                .orElse("Validation failed");
+
+        ErrorResponse response = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                messages
+        );
+
+        return ResponseEntity.badRequest().body(response);
     }
 
     // for remaining exceptions

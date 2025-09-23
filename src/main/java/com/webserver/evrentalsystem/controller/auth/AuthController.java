@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value="api/auth")
-@Tag(name = "Authentication", description = "APIs liên quan đến đăng nhập/đăng ký/đăng xuất")
+@Tag(name = "1. Authentication", description = "APIs liên quan đến đăng nhập/đăng ký/đăng xuất")
 public class AuthController {
 
     @Autowired

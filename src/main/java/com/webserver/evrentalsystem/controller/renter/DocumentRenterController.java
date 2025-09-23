@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/renter/documents")
-@Tag(name = "Renter Documents", description = "API quản lý tài liệu của Renter (CCCD, GPLX, ...)")
+@Tag(name = "2.1. Renter Documents", description = "API quản lý tài liệu của Renter (CCCD, GPLX, ...)")
 @SecurityRequirement(name = "bearerAuth")
 public class DocumentRenterController {
 

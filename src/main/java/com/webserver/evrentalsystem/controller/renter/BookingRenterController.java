@@ -22,7 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/renter")
-@Tag(name = "Renter Booking", description = "API quản lý đặt xe của Renter")
+@Tag(name = "2.2. Renter Booking", description = "API quản lý đặt xe của Renter")
 @SecurityRequirement(name = "bearerAuth")
 public class BookingRenterController {
 
