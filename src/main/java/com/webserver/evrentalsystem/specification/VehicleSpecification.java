@@ -1,10 +1,12 @@
 package com.webserver.evrentalsystem.specification;
 
 import com.webserver.evrentalsystem.entity.Vehicle;
+import com.webserver.evrentalsystem.entity.VehicleStatus;
+import com.webserver.evrentalsystem.entity.VehicleType;
 import org.springframework.data.jpa.domain.Specification;
 
 public class VehicleSpecification {
-    public static Specification<Vehicle> hasType(String type) {
+    public static Specification<Vehicle> hasType(VehicleType type) {
         return (root, query, cb) ->
                 type == null ? null : cb.equal(root.get("type"), type);
     }
@@ -25,7 +27,7 @@ public class VehicleSpecification {
     }
 
     public static Specification<Vehicle> isAvailable() {
-        return (root, query, cb) -> cb.equal(root.get("status"), "available");
+        return (root, query, cb) -> cb.equal(root.get("status"), VehicleStatus.AVAILABLE);
     }
 }
 

@@ -40,7 +40,7 @@ public class Reservation {
 
     @Convert(converter = ReservationStatusJpaConverter.class)
     @Column(nullable = false)
-    private ReservationStatus status;
+    private ReservationStatus status; // pending, confirmed, cancelled, expired
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

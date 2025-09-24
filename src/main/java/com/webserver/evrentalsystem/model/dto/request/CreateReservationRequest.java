@@ -25,15 +25,13 @@ public class CreateReservationRequest {
 
     @Schema(
             description = "Thời gian bắt đầu đặt xe (ISO 8601 timestamp)",
-            example = "2025-09-22T14:00:00"
+            example = "2025-09-22T08:00:00"
     )
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime reservedStartTime;
 
     @Schema(
             description = "Thời gian kết thúc đặt xe (ISO 8601 timestamp)",
             example = "2025-09-22T18:00:00"
     )
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime reservedEndTime;
 }

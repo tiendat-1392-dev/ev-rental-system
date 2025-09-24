@@ -17,6 +17,7 @@ import com.webserver.evrentalsystem.repository.UserRepository;
 import com.webserver.evrentalsystem.repository.VehicleRepository;
 import com.webserver.evrentalsystem.service.renter.BookingRenterService;
 import com.webserver.evrentalsystem.service.validation.UserValidation;
+import com.webserver.evrentalsystem.specification.ReservationSpecification;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -57,7 +58,6 @@ public class BookingRenterServiceImpl implements BookingRenterService {
 
     @Override
     public List<StationDto> getStations() {
-        userValidation.validateUser();
         return stationRepository.findAllActiveStations().stream()
                 .map(stationMapper::toStationDto)
                 .toList();
@@ -65,10 +65,18 @@ public class BookingRenterServiceImpl implements BookingRenterService {
 
     @Override
     public List<VehicleDto> getVehicles(String type, Long stationId, Double priceMin, Double priceMax) {
-        userValidation.validateUser();
+        if (type != null) {
+            try {
+                VehicleType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new InvalidateParamsException("Loại xe không hợp lệ. Chỉ chấp nhận 'motorbike' hoặc 'car'.");
+            }
+        }
+
+
         List<Vehicle> vehicles = vehicleRepository.findAll(
                 Specification.where(isAvailable())
-                        .and(hasType(type))
+                        .and(hasType(type == null ? null : VehicleType.valueOf(type.toUpperCase())))
                         .and(hasStation(stationId))
                         .and(priceGreaterOrEqual(priceMin))
                         .and(priceLessOrEqual(priceMax))
@@ -80,7 +88,7 @@ public class BookingRenterServiceImpl implements BookingRenterService {
 
     @Override
     public ReservationDto createReservation(CreateReservationRequest request) {
-        User renter = userValidation.validateUser();
+        User renter = userValidation.validateRenter();
         Long vehicleId = request.getVehicleId();
         LocalDateTime reservedStartTime = request.getReservedStartTime();
         LocalDateTime reservedEndTime = request.getReservedEndTime();
@@ -127,9 +135,16 @@ public class BookingRenterServiceImpl implements BookingRenterService {
     }
 
     @Override
-    public List<ReservationDto> getMyReservations() {
-        User renter = userValidation.validateUser();
-        List<Reservation> reservations = reservationRepository.findByRenterId(renter.getId());
+    public List<ReservationDto> getMyReservations(ReservationStatus status, Long vehicleId, LocalDateTime startFrom, LocalDateTime startTo) {
+        User renter = userValidation.validateRenter();
+
+        Specification<Reservation> spec = Specification.where(ReservationSpecification.hasRenter(renter.getId()))
+                .and(ReservationSpecification.hasStatus(status))
+                .and(ReservationSpecification.hasVehicle(vehicleId))
+                .and(ReservationSpecification.startFrom(startFrom))
+                .and(ReservationSpecification.startTo(startTo));
+
+        List<Reservation> reservations = reservationRepository.findAll(spec);
         return reservations.stream()
                 .map(reservationMapper::toReservationDto)
                 .toList();
@@ -137,7 +152,7 @@ public class BookingRenterServiceImpl implements BookingRenterService {
 
     @Override
     public ReservationDto getReservationById(Long id) {
-        User renter = userValidation.validateUser();
+        User renter = userValidation.validateRenter();
         Reservation reservation = reservationRepository.findByIdAndRenterId(id, renter.getId());
         if (reservation == null) {
             throw new NotFoundException("Đặt xe không tồn tại.");
@@ -147,7 +162,7 @@ public class BookingRenterServiceImpl implements BookingRenterService {
 
     @Override
     public void cancelReservation(Long id, String cancelReason) {
-        User renter = userValidation.validateUser();
+        User renter = userValidation.validateRenter();
         Reservation reservation = reservationRepository.findByIdAndRenterId(id, renter.getId());
         if (reservation == null) {
             throw new NotFoundException("Đặt xe không tồn tại.");

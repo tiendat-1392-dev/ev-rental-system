@@ -30,7 +30,7 @@ public class UpdateVehicleRequest {
     @Schema(description = "Quãng đường di chuyển trên mỗi lần sạc đầy (km)", example = "250")
     private Integer rangePerFullCharge;
 
-    @Schema(description = "Trạng thái xe", example = "maintenance", allowableValues = {"reserved", "available", "reserved", "maintenance", "rented"})
+    @Schema(description = "Trạng thái xe", example = "available", allowableValues = {"reserved", "available", "reserved", "maintenance", "rented"})
     private String status;
 
     @Schema(description = "Giá thuê mỗi giờ", example = "50000")

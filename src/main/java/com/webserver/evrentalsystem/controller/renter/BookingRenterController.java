@@ -1,10 +1,11 @@
 package com.webserver.evrentalsystem.controller.renter;
 
+import com.webserver.evrentalsystem.entity.ReservationStatus;
+import com.webserver.evrentalsystem.entity.VehicleType;
 import com.webserver.evrentalsystem.model.dto.entitydto.ReservationDto;
 import com.webserver.evrentalsystem.model.dto.entitydto.StationDto;
 import com.webserver.evrentalsystem.model.dto.entitydto.VehicleDto;
 import com.webserver.evrentalsystem.model.dto.request.CancelReservationRequest;
-import com.webserver.evrentalsystem.model.dto.response.*;
 import com.webserver.evrentalsystem.model.dto.request.CreateReservationRequest;
 import com.webserver.evrentalsystem.service.renter.BookingRenterService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,9 +16,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -97,6 +100,12 @@ public class BookingRenterController {
 
     @Operation(
             summary = "Xem danh sách booking của tôi",
+            parameters = {
+                    @Parameter(name = "status", description = "Trạng thái (PENDING, CONFIRMED, CANCELLED, EXPIRED)"),
+                    @Parameter(name = "vehicleId", description = "ID xe"),
+                    @Parameter(name = "startFrom", description = "Thời gian bắt đầu (>=)", example = "2025-09-23T10:00:00"),
+                    @Parameter(name = "startTo", description = "Thời gian bắt đầu (<=)", example = "2025-09-30T23:59:59")
+            },
             responses = {
                     @ApiResponse(responseCode = "200", description = "Danh sách booking",
                             content = @Content(mediaType = "application/json",
@@ -104,8 +113,13 @@ public class BookingRenterController {
             }
     )
     @GetMapping("/reservations")
-    public ResponseEntity<List<ReservationDto>> getMyReservations() {
-        List<ReservationDto> reservations = bookingRenterService.getMyReservations();
+    public ResponseEntity<List<ReservationDto>> getMyReservations(
+            @RequestParam(required = false) ReservationStatus status,
+            @RequestParam(required = false) Long vehicleId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTo
+    ) {
+        List<ReservationDto> reservations = bookingRenterService.getMyReservations(status, vehicleId, startFrom, startTo);
         return ResponseEntity.ok(reservations);
     }
 
