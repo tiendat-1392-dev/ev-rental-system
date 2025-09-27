@@ -5,10 +5,13 @@ import com.webserver.evrentalsystem.entity.User;
 import com.webserver.evrentalsystem.exception.ConflictException;
 import com.webserver.evrentalsystem.exception.InvalidateParamsException;
 import com.webserver.evrentalsystem.exception.NotFoundException;
+import com.webserver.evrentalsystem.model.dto.entitydto.DocumentDto;
 import com.webserver.evrentalsystem.model.dto.entitydto.UserDto;
 import com.webserver.evrentalsystem.model.dto.request.CreateUserRequest;
 import com.webserver.evrentalsystem.model.dto.request.UpdateUserRequest;
+import com.webserver.evrentalsystem.model.mapping.DocumentMapper;
 import com.webserver.evrentalsystem.model.mapping.UserMapper;
+import com.webserver.evrentalsystem.repository.DocumentRepository;
 import com.webserver.evrentalsystem.repository.UserRepository;
 import com.webserver.evrentalsystem.service.admin.UserManagementAdminService;
 import com.webserver.evrentalsystem.service.validation.UserValidation;
@@ -35,10 +38,17 @@ public class UserManagementAdminServiceImpl implements UserManagementAdminServic
     private UserMapper userMapper;
 
     @Autowired
+    private DocumentRepository documentRepository;
+
+    @Autowired
+    private DocumentMapper documentMapper;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
     public UserDto createUser(CreateUserRequest request) {
+        userValidation.validateAdmin();
         if (userRepository.existsByPhone(request.getPhone())) {
             throw new ConflictException("Số điện thoại đã tồn tại");
         }
@@ -56,6 +66,7 @@ public class UserManagementAdminServiceImpl implements UserManagementAdminServic
 
     @Override
     public List<UserDto> getAllUsers(String role, String phone) {
+        userValidation.validateAdmin();
         return userRepository.findAll().stream()
                 .filter(u -> (role == null || u.getRole().getValue().equalsIgnoreCase(role)))
                 .filter(u -> (phone == null || u.getPhone().contains(phone)))
@@ -65,6 +76,7 @@ public class UserManagementAdminServiceImpl implements UserManagementAdminServic
 
     @Override
     public UserDto getUserById(Long id) {
+        userValidation.validateAdmin();
         return userRepository.findById(id)
                 .map(userMapper::toUserDto)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy user với id = " + id));
@@ -72,6 +84,7 @@ public class UserManagementAdminServiceImpl implements UserManagementAdminServic
 
     @Override
     public UserDto updateUser(Long id, UpdateUserRequest request) {
+        userValidation.validateAdmin();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy user với id = " + id));
 
@@ -116,6 +129,7 @@ public class UserManagementAdminServiceImpl implements UserManagementAdminServic
 
     @Override
     public void deleteUser(Long id) {
+        userValidation.validateAdmin();
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("Không tìm thấy user với id = " + id);
         }
@@ -124,5 +138,18 @@ public class UserManagementAdminServiceImpl implements UserManagementAdminServic
             throw new InvalidateParamsException("Không thể xóa chính mình");
         }
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public List<DocumentDto> getRenterDocument(Long renterId) {
+        userValidation.validateAdmin();
+        User renter = userRepository.findById(renterId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy user với id = " + renterId));
+        if (renter.getRole() != Role.RENTER) {
+            throw new InvalidateParamsException("User không phải là renter");
+        }
+        return documentRepository.findByUserId(renterId).stream()
+                .map(documentMapper::toDocumentDto)
+                .collect(Collectors.toList());
     }
 }

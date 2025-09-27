@@ -10,6 +10,7 @@ import com.webserver.evrentalsystem.model.dto.request.UpdateStationRequest;
 import com.webserver.evrentalsystem.model.mapping.StationMapper;
 import com.webserver.evrentalsystem.repository.StationRepository;
 import com.webserver.evrentalsystem.service.admin.StationAdminService;
+import com.webserver.evrentalsystem.service.validation.UserValidation;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,8 +27,13 @@ public class StationAdminServiceImpl implements StationAdminService {
     @Autowired
     private StationMapper stationMapper;
 
+    @Autowired
+    private UserValidation userValidation;
+
     @Override
     public StationDto createStation(CreateStationRequest request) {
+        userValidation.validateAdmin();
+
         if (!request.isValid()) {
             throw new InvalidateParamsException("Tham số không hợp lệ");
         }
@@ -46,6 +52,7 @@ public class StationAdminServiceImpl implements StationAdminService {
 
     @Override
     public List<StationDto> getAllStations() {
+        userValidation.validateAdmin();
         return stationRepository.findAll()
                 .stream()
                 .map(stationMapper::toStationDto)
@@ -54,6 +61,7 @@ public class StationAdminServiceImpl implements StationAdminService {
 
     @Override
     public StationDto getStationById(Long id) {
+        userValidation.validateAdmin();
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy trạm với id = " + id));
         return stationMapper.toStationDto(station);
@@ -61,6 +69,7 @@ public class StationAdminServiceImpl implements StationAdminService {
 
     @Override
     public StationDto updateStation(Long id, UpdateStationRequest request) {
+        userValidation.validateAdmin();
         if (!request.isValid()) {
             throw new InvalidateParamsException("Tham số không hợp lệ");
         }
@@ -79,6 +88,7 @@ public class StationAdminServiceImpl implements StationAdminService {
 
     @Override
     public void deleteStation(Long id) {
+        userValidation.validateAdmin();
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy trạm với id = " + id));
         stationRepository.delete(station);

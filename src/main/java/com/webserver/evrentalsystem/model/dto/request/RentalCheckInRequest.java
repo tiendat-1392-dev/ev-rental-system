@@ -16,7 +16,7 @@ public class RentalCheckInRequest {
 
     @Schema(description = "ID người thuê xe", example = "789")
     @NotNull(message = "renter_id không được null")
-    private Long rentalId;
+    private Long renterId;
 
     @Schema(description = "ID đặt chỗ (nếu check-in từ reservation)", example = "123")
     private Long reservationId;

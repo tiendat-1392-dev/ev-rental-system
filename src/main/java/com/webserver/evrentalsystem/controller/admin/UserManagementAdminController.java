@@ -1,5 +1,6 @@
 package com.webserver.evrentalsystem.controller.admin;
 
+import com.webserver.evrentalsystem.model.dto.entitydto.DocumentDto;
 import com.webserver.evrentalsystem.model.dto.entitydto.UserDto;
 import com.webserver.evrentalsystem.model.dto.request.CreateUserRequest;
 import com.webserver.evrentalsystem.model.dto.request.UpdateUserRequest;
@@ -66,5 +67,11 @@ public class UserManagementAdminController {
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         userManagementAdminService.deleteUser(id);
+    }
+
+    @Operation(summary = "Lấy thông tin hồ sơ của khách hàng")
+    @GetMapping("/profile/{renterId}")
+    public List<DocumentDto> getRenterDocument(@PathVariable Long renterId) {
+        return userManagementAdminService.getRenterDocument(renterId);
     }
 }

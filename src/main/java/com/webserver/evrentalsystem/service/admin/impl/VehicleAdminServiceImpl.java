@@ -36,6 +36,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
     @Override
     public VehicleDto createVehicle(CreateVehicleRequest request) {
+        userValidation.validateAdmin();
         if (request.getLicensePlate() == null || request.getType() == null ||
                 request.getBrand() == null || request.getModel() == null || request.getCapacity() == null ||
                 request.getRangePerFullCharge() == null || request.getPricePerHour() == null ||
@@ -71,6 +72,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
     @Override
     public List<VehicleDto> getAllVehicles(String status, String plateNumber) {
+        userValidation.validateAdmin();
         List<Vehicle> vehicles = vehicleRepository.findAll();
 
         if (status != null) {
@@ -93,6 +95,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
     @Override
     public VehicleDto getVehicleById(Long id) {
+        userValidation.validateAdmin();
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy xe với id = " + id));
         return vehicleMapper.toVehicleDto(vehicle);
@@ -100,6 +103,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
     @Override
     public VehicleDto updateVehicle(Long id, UpdateVehicleRequest request) {
+        userValidation.validateAdmin();
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy xe với id = " + id));
 
@@ -140,6 +144,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
     @Override
     public void deleteVehicle(Long id) {
+        userValidation.validateAdmin();
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy xe với id = " + id));
         vehicleRepository.delete(vehicle);
@@ -147,6 +152,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
     @Override
     public Map<String, Long> getVehicleStatusStatistics() {
+        userValidation.validateAdmin();
         List<Vehicle> vehicles = vehicleRepository.findAll();
         return vehicles.stream()
                 .collect(Collectors.groupingBy(

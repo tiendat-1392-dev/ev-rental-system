@@ -41,6 +41,8 @@ public class StaffStationAdminServiceImpl implements StaffStationAdminService {
 
     @Override
     public StaffStationDto assignStaffToStation(AssignStaffRequest request) {
+        userValidation.validateAdmin();
+
         if (request == null || request.getStaffId() == null || request.getStationId() == null) {
             throw new InvalidateParamsException("staff_id và station_id là bắt buộc");
         }

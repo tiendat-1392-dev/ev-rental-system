@@ -4,20 +4,25 @@ import com.webserver.evrentalsystem.entity.*;
 import com.webserver.evrentalsystem.exception.ConflictException;
 import com.webserver.evrentalsystem.exception.InvalidateParamsException;
 import com.webserver.evrentalsystem.exception.NotFoundException;
+import com.webserver.evrentalsystem.model.dto.entitydto.RentalCheckDto;
 import com.webserver.evrentalsystem.model.dto.entitydto.RentalDto;
 import com.webserver.evrentalsystem.model.dto.entitydto.ReservationDto;
+import com.webserver.evrentalsystem.model.dto.request.ConfirmRentalRequest;
 import com.webserver.evrentalsystem.model.dto.request.RentalCheckInRequest;
 import com.webserver.evrentalsystem.model.dto.request.ReservationFilterRequest;
+import com.webserver.evrentalsystem.model.mapping.RentalCheckMapper;
 import com.webserver.evrentalsystem.model.mapping.RentalMapper;
 import com.webserver.evrentalsystem.model.mapping.ReservationMapper;
 import com.webserver.evrentalsystem.repository.*;
 import com.webserver.evrentalsystem.service.staff.RentalStaffService;
 import com.webserver.evrentalsystem.service.validation.UserValidation;
 import com.webserver.evrentalsystem.specification.ReservationSpecification;
+import com.webserver.evrentalsystem.utils.FileStorageUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,6 +54,12 @@ public class RentalStaffServiceImpl implements RentalStaffService {
     @Autowired
     private ReservationMapper reservationMapper;
 
+    @Autowired
+    private RentalCheckRepository rentalCheckRepository;
+
+    @Autowired
+    private RentalCheckMapper rentalCheckMapper;
+
     public List<ReservationDto> getReservations(ReservationFilterRequest filter) {
         List<Reservation> reservations = reservationRepository.findAll(
                 Specification.where(ReservationSpecification.hasRenter(filter.getRenterId()))
@@ -63,10 +74,42 @@ public class RentalStaffServiceImpl implements RentalStaffService {
                 .toList();
     }
 
+    public List<RentalDto> getRentals(Long renterId, Long vehicleId, Long stationPickupId,
+                                      Long stationReturnId, String status,
+                                      LocalDateTime startFrom, LocalDateTime startTo) {
+        Specification<Rental> spec = Specification.where(null);
+
+        if (renterId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("renter").get("id"), renterId));
+        }
+        if (vehicleId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("vehicle").get("id"), vehicleId));
+        }
+        if (stationPickupId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("stationPickup").get("id"), stationPickupId));
+        }
+        if (stationReturnId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("stationReturn").get("id"), stationReturnId));
+        }
+        if (status != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), RentalStatus.valueOf(status.toUpperCase())));
+        }
+        if (startFrom != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("startTime"), startFrom));
+        }
+        if (startTo != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("startTime"), startTo));
+        }
+
+        return rentalRepository.findAll(spec).stream()
+                .map(rentalMapper::toRentalDto)
+                .toList();
+    }
+
     @Override
     public RentalDto checkIn(RentalCheckInRequest request) {
         User staff = userValidation.validateStaff();
-        Long renterId = request.getRentalId();
+        Long renterId = request.getRenterId();
         Long reservationId = request.getReservationId();
         Long vehicleId = request.getVehicleId();
         Long stationId = request.getStationId();
@@ -170,5 +213,109 @@ public class RentalStaffServiceImpl implements RentalStaffService {
         rental.setCreatedAt(LocalDateTime.now());
 
         return rentalMapper.toRentalDto(rentalRepository.save(rental));
+    }
+
+    @Override
+    public RentalDto cancelRental(Long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId).orElse(null);
+        if (rental == null) {
+            throw new NotFoundException("Lượt thuê (rental) không tồn tại");
+        }
+        if (rental.getStatus() != RentalStatus.BOOKED) {
+            throw new ConflictException("Chỉ có thể hủy lượt thuê ở trạng thái BOOKED");
+        }
+        rental.setStatus(RentalStatus.CANCELLED);
+        return rentalMapper.toRentalDto(rentalRepository.save(rental));
+    }
+
+    @Override
+    public RentalDto holdDeposit(Long rentalId) {
+        userValidation.validateStaff();
+        Rental rental = rentalRepository.findById(rentalId).orElse(null);
+        if (rental == null) {
+            throw new NotFoundException("Lượt thuê (rental) không tồn tại");
+        }
+        if (rental.getStatus() != RentalStatus.BOOKED) {
+            throw new ConflictException("Chỉ có thể giữ tiền cọc cho lượt thuê ở trạng thái BOOKED");
+        }
+        if (rental.getDepositAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ConflictException("Lượt thuê chưa đặt cọc");
+        }
+        if (rental.getDepositStatus() == DepositStatus.HELD) {
+            throw new ConflictException("Tiền cọc đã được giữ trước đó");
+        }
+        rental.setDepositStatus(DepositStatus.HELD);
+        return rentalMapper.toRentalDto(rentalRepository.save(rental));
+    }
+
+    @Override
+    public RentalCheckDto confirmPickup(ConfirmRentalRequest request, MultipartFile photo, MultipartFile staffSignature, MultipartFile customerSignature) {
+        User staff = userValidation.validateStaff();
+        Long rentalId = request.getRentalId();
+        String conditionReport = request.getConditionReport();
+
+        if (photo == null || photo.isEmpty()) {
+            throw new InvalidateParamsException("photo không được để trống");
+        }
+        if (staffSignature == null || staffSignature.isEmpty()) {
+            throw new InvalidateParamsException("staffSignature không được để trống");
+        }
+        if (customerSignature == null || customerSignature.isEmpty()) {
+            throw new InvalidateParamsException("customerSignature không được để trống");
+        }
+        // check type must be "pickup"
+        CheckType checkType;
+        try {
+            checkType = CheckType.valueOf(request.getCheckType().toUpperCase());
+            if (checkType != CheckType.PICKUP) {
+                throw new InvalidateParamsException("checkType phải là 'pickup'");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new InvalidateParamsException("checkType phải là 'pickup'");
+        }
+
+        Rental rental = rentalRepository.findById(rentalId).orElse(null);
+        if (rental == null) {
+            throw new NotFoundException("Lượt thuê (rental) không tồn tại");
+        }
+        if (rental.getStatus() != RentalStatus.BOOKED) {
+            throw new ConflictException("Chỉ có thể xác nhận giao xe cho khách khi lượt thuê ở trạng thái BOOKED");
+        }
+        if (rental.getDepositStatus() != DepositStatus.HELD && rental.getDepositAmount().compareTo(BigDecimal.ZERO) > 0) {
+            throw new ConflictException("Chỉ có thể xác nhận giao xe cho khách khi tiền cọc đã được thanh toán");
+        }
+
+        // Cập nhật trạng thái xe thành RENTED
+        Vehicle vehicle = rental.getVehicle();
+        vehicle.setStatus(VehicleStatus.RENTED);
+        vehicleRepository.save(vehicle);
+
+        // Cập nhật trạng thái rental thành IN_USE
+        rental.setStatus(RentalStatus.IN_USE);
+        rentalRepository.save(rental);
+
+        // Lưu biên bản giao xe
+        RentalCheck rentalCheck = new RentalCheck();
+        rentalCheck.setRental(rental);
+        rentalCheck.setStaff(staff);
+        rentalCheck.setCheckType(checkType);
+        rentalCheck.setConditionReport(conditionReport);
+        // Lưu file ảnh và chữ ký lên server hoặc dịch vụ lưu trữ file, sau đó lấy URL
+        String photoUrl;
+        String staffSignatureUrl;
+        String customerSignatureUrl;
+        try {
+            photoUrl = FileStorageUtils.saveFile(photo);
+            staffSignatureUrl = FileStorageUtils.saveFile(staffSignature);
+            customerSignatureUrl = FileStorageUtils.saveFile(customerSignature);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi lưu file", e);
+        }
+        rentalCheck.setPhotoUrl(photoUrl);
+        rentalCheck.setStaffSignatureUrl(staffSignatureUrl);
+        rentalCheck.setCustomerSignatureUrl(customerSignatureUrl);
+        rentalCheck.setCreatedAt(LocalDateTime.now());
+
+        return rentalCheckMapper.toRentalCheckDto(rentalCheckRepository.save(rentalCheck));
     }
 }
