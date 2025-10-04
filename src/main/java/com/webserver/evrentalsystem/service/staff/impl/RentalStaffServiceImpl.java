@@ -367,6 +367,7 @@ public class RentalStaffServiceImpl implements RentalStaffService {
 
         // Cập nhật trạng thái rental thành WAITING_FOR_PAYMENT
         rental.setStatus(RentalStatus.WAITING_FOR_PAYMENT);
+        rental.setStaffReturn(staff);
         rentalRepository.save(rental);
 
         // Lưu biên bản giao xe
