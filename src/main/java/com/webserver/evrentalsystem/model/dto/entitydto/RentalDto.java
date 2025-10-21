@@ -60,5 +60,18 @@ public class RentalDto {
 
     @Schema(description = "Ngày tạo record")
     private LocalDateTime createdAt;
+
+    @Schema(description = "Phần trăm pin lúc bàn giao xe")
+    private Integer batteryLevelStart;
+
+    @Schema(description = "Phần trăm pin lúc nhận xe trả về")
+    private Integer batteryLevelEnd;
+
+    @Schema(description = "Odometer (km) lúc bàn giao xe")
+    private Integer odoStart;
+
+    @Schema(description = "Odometer (km) lúc nhận xe trả về")
+    private Integer odoEnd;
+
 }
 

@@ -292,13 +292,17 @@ public class RentalStaffServiceImpl implements RentalStaffService {
             throw new ConflictException("Chỉ có thể xác nhận giao xe cho khách khi tiền cọc đã được thanh toán");
         }
 
-        // Cập nhật trạng thái xe thành RENTED
+        // Cập nhật trạng thái xe thành RENTED, phần trăm pin xe hiện tại
         Vehicle vehicle = rental.getVehicle();
+        vehicle.setOdo(request.getOdo());
+        vehicle.setBatteryLevel(request.getBatteryLevel());
         vehicle.setStatus(VehicleStatus.RENTED);
         vehicleRepository.save(vehicle);
 
-        // Cập nhật trạng thái rental thành IN_USE
-        rental.setStatus(RentalStatus.IN_USE);
+        // Cập nhật trạng thái rental thành WAIT_CONFIRM
+        rental.setOdoStart(request.getOdo());
+        rental.setBatteryLevelStart(request.getBatteryLevel());
+        rental.setStatus(RentalStatus.WAIT_CONFIRM);
         rentalRepository.save(rental);
 
         // Lưu biên bản giao xe
@@ -362,10 +366,14 @@ public class RentalStaffServiceImpl implements RentalStaffService {
 
         // Cập nhật trạng thái xe thành RENTED
         Vehicle vehicle = rental.getVehicle();
+        vehicle.setOdo(request.getOdo());
+        vehicle.setBatteryLevel(request.getBatteryLevel());
         vehicle.setStatus(VehicleStatus.AVAILABLE);
         vehicleRepository.save(vehicle);
 
         // Cập nhật trạng thái rental thành WAITING_FOR_PAYMENT
+        rental.setOdoEnd(request.getOdo());
+        rental.setBatteryLevelEnd(request.getBatteryLevel());
         rental.setStatus(RentalStatus.WAITING_FOR_PAYMENT);
         rental.setStaffReturn(staff);
         rentalRepository.save(rental);
@@ -403,8 +411,10 @@ public class RentalStaffServiceImpl implements RentalStaffService {
         if (rental == null) {
             throw new NotFoundException("Lượt thuê (rental) không tồn tại");
         }
-        if (rental.getStatus() != RentalStatus.IN_USE && rental.getStatus() != RentalStatus.WAITING_FOR_PAYMENT) {
-            throw new ConflictException("Chỉ có thể thêm chi phí phát sinh cho lượt thuê ở trạng thái IN_USE hoặc WAITING_FOR_PAYMENT");
+        if (rental.getStatus() != RentalStatus.WAIT_CONFIRM
+                && rental.getStatus() != RentalStatus.IN_USE
+                && rental.getStatus() != RentalStatus.WAITING_FOR_PAYMENT) {
+            throw new ConflictException("Chỉ có thể thêm chi phí phát sinh cho lượt thuê ở trạng thái WAIT_CONFIRM, IN_USE hoặc WAITING_FOR_PAYMENT");
         }
 
         Violation violation = new Violation();

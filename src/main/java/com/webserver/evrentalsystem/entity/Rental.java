@@ -73,4 +73,17 @@ public class Rental {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "battery_Level_start")
+    private Integer batteryLevelStart;
+
+    @Column(name = "battery_Level_end")
+    private Integer batteryLevelEnd;
+
+    @Column(name = "odo_start")
+    private Integer odoStart;
+
+    @Column(name = "odo_end")
+    private Integer odoEnd;
+
 }
