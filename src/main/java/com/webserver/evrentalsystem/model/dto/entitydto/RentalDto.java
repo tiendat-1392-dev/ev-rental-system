@@ -46,6 +46,12 @@ public class RentalDto {
     @Schema(description = "Tổng chi phí", example = "350000")
     private BigDecimal totalCost;
 
+    @Schema(description = "Tổng phí thuê xe theo giờ", example = "200")
+    private BigDecimal rentalCost;
+
+    @Schema(description = "Số tiền bảo hiểm nếu có", example = "200")
+    private BigDecimal insurance;
+
     @Schema(description = "Loại thuê (booking/walk-in)", example = "booking")
     private String rentalType;
 

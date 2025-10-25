@@ -86,4 +86,10 @@ public class Rental {
     @Column(name = "odo_end")
     private Integer odoEnd;
 
+    @Column(name = "rental_cost")
+    private BigDecimal rentalCost;
+
+    @Column(name = "insurance")
+    private BigDecimal insurance;
+
 }
