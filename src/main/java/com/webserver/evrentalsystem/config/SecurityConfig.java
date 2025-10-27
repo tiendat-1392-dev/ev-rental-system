@@ -24,8 +24,8 @@ public class SecurityConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(requests -> requests.anyRequest().permitAll());
+                .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+                .csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
     }
 
