@@ -74,7 +74,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
         if (request.getImage() != null) {
             try {
-                String vehicleUrl = FileStorageUtils.saveFile(request.getImage());
+                String vehicleUrl = FileStorageUtils.savePublicFile(request.getImage());
                 vehicle.setImageUrl(vehicleUrl);
             } catch (Exception e) {
                 throw new RuntimeException("Lỗi khi lưu file", e);
@@ -160,7 +160,7 @@ public class VehicleAdminServiceImpl implements VehicleAdminService {
 
         if (request.getImage() != null) {
             try {
-                String vehicleUrl = FileStorageUtils.saveFile(request.getImage());
+                String vehicleUrl = FileStorageUtils.savePublicFile(request.getImage());
                 vehicle.setImageUrl(vehicleUrl);
             } catch (Exception e) {
                 throw new RuntimeException("Lỗi khi lưu file", e);
