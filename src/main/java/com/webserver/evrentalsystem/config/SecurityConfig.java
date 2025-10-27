@@ -25,7 +25,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests((requests) -> requests.requestMatchers("/uploads/**").permitAll());
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/v3/api-docs/**",
+                                "/webjars/**",
+                                "/uploads/**",
+                                "/api/public/**",
+                                "/api/auth/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                );
+
         return httpSecurity.build();
     }
+
 }
